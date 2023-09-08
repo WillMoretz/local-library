@@ -151,12 +151,45 @@ exports.book_create_post = [
 
 // Display book delete form on GET.
 exports.book_delete_get = asyncHandler(async (req, res, next) => {
-  res.send("NOT IMPLEMENTED: Book delete GET");
+  // Get details of the book and its instances
+  const [book, allInstancesOfBook] = await Promise.all([
+    Book.findById(req.params.id).exec(),
+    BookInstance.find({ book: req.params.id }).exec(),
+  ]);
+
+  if (book === null) {
+    // No Results
+    res.redirect("/catalog/books");
+  }
+
+  res.render("book_delete", {
+    title: "Delete Book",
+    book: book,
+    bookinstance_list: allInstancesOfBook,
+  });
 });
 
 // Handle book delete on POST.
 exports.book_delete_post = asyncHandler(async (req, res, next) => {
-  res.send("NOT IMPLEMENTED: Book delete POST");
+  // Get details of the book and its instances
+  const [book, allInstancesOfBook] = await Promise.all([
+    Book.findById(req.params.id).exec(),
+    BookInstance.find({ book: req.params.id }).exec(),
+  ]);
+
+  if (allInstancesOfBook.length > 0) {
+    //Book still has instances
+    res.render("book_delete", {
+      title: "Delete Book",
+      book: book,
+      bookinstance_list: allInstancesOfBook,
+    });
+    return;
+  } else {
+    // No instances, delete book and redirect
+    await Book.findByIdAndRemove(req.body.bookid);
+    res.redirect("/catalog/books");
+  }
 });
 
 // Display book update form on GET.
